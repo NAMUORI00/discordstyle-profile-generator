@@ -35,14 +35,14 @@ export const generateStandaloneHTML = (profile: UserProfile): string => {
         </div>
     </div>
     <div class="section-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <span>Listening To</span>
         <div style="display:flex; align-items:center; gap:8px;">
-          <span>Listening To</span>
+          <span id="current-playlist-label" style="font-size:10px; background:rgba(255,255,255,0.1); padding:2px 6px; border-radius:4px; opacity:0.6; color:#fff;">${activePlaylist.label}</span>
           <span id="scan-status" style="font-size:10px; color:#facc15; display:none; align-items:center; gap:4px; animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;">
             <svg class="spin" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>
             Scanning
           </span>
         </div>
-        <span id="current-playlist-label" style="font-size:10px; background:rgba(255,255,255,0.1); padding:2px 6px; border-radius:4px; opacity:0.6; color:#fff;">${activePlaylist.label}</span>
     </div>
     <div class="player-wrapper">
         <div class="player-container">
@@ -205,6 +205,9 @@ export const generateStandaloneHTML = (profile: UserProfile): string => {
                 if (!pl || !player) return;
                 document.getElementById('current-playlist-label').innerText = pl.label;
                 currentPlaylistId = playlistId; totalTracks = 0; scannedMetadata = {};
+                isPlaying = false;
+                document.getElementById('icon-play').style.display = 'block';
+                document.getElementById('icon-pause').style.display = 'none';
                 player.loadPlaylist({ listType: 'playlist', list: pl.playlistId, index: 0, startSeconds: 0 });
                 if (scanner) { scanner.loadPlaylist({ listType: 'playlist', list: pl.playlistId, index: 0, startSeconds: 0 }); initiateScan(); }
                 document.getElementById('drawer').style.maxHeight = '0'; drawerMode = null;
@@ -220,10 +223,12 @@ export const generateStandaloneHTML = (profile: UserProfile): string => {
         function renderPlaylists() {
             const title = document.getElementById('drawer-title'); if(title) title.innerText = "SELECT PLAYLIST";
             const cont = document.getElementById('drawer-content'); if(!cont) return; cont.innerHTML = '';
-            playlists.forEach((pl) => {
+            playlists.forEach(function(pl) {
                 const btn = document.createElement('div'); btn.className = 'drawer-item ' + (String(pl.id) === String(currentPlaylistId) ? 'active' : '');
                 btn.innerHTML = '<span>' + pl.label + '</span>' + (String(pl.id) === String(currentPlaylistId) ? '<div style="width:6px; height:6px; background:#22c55e; border-radius:50%;"></div>' : '');
-                btn.onclick = () => switchPlaylist(pl.id); cont.appendChild(btn);
+                btn.setAttribute('data-playlist-id', pl.id);
+                btn.onclick = function() { switchPlaylist(this.getAttribute('data-playlist-id')); };
+                cont.appendChild(btn);
             });
         }
         function renderTracks() {
@@ -232,7 +237,7 @@ export const generateStandaloneHTML = (profile: UserProfile): string => {
             for(let i = 0; i < totalTracks; i++) {
                 const btn = document.createElement('div'); btn.className = 'drawer-item ' + (i === currentTrackIdx ? 'active' : '');
                 const meta = scannedMetadata[i]; const trackTitle = meta ? meta.title : ('Track ' + (i + 1)); const author = meta ? meta.author : 'Loading...';
-                btn.innerHTML = '<div style="display:flex; flex-direction:column; min-width:0;"><span class="truncate">' + trackTitle + '</span><span class="truncate" style="font-size:10px; color:#9ca3af;">' + author + '</span></div>' + (i === currentTrackIdx ? '<svg width="12" height="12" fill="#22c55e" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>' : '');
+                btn.innerHTML = '<div style="display:flex; flex-direction:column; min-width:0;"><span class="truncate">' + trackTitle + '</span><span class="truncate" style="font-size:10px; color:#9ca3af;">' + author + '</span></div>' + (i === currentTrackIdx ? '<svg width="12" height="12" fill="none" stroke="#22c55e" stroke-width="2" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>' : '');
                 btn.onclick = () => { if(player) player.playVideoAt(i); document.getElementById('drawer').style.maxHeight = '0'; drawerMode = null; };
                 cont.appendChild(btn);
             }
@@ -246,10 +251,10 @@ export const generateStandaloneHTML = (profile: UserProfile): string => {
         if(!text) return '';
         let html = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
         html = html.replace(/^&gt; (.*$)/gm, '<blockquote class="discord-quote">$1</blockquote>');
-        html = html.replace(/\\\`\\\`\\\`([\\s\\S]*?)\\\`\\\`\\\`/g, '<pre class="discord-pre"><code class="scrollbar-ghost">$1</code></pre>');
-        html = html.replace(/\\\`([^\\\`]+)\\\`/g, '<code class="discord-inline-code">$1</code>');
-        html = html.replace(/\\*\\*([^\\*]+)\\*\\*/g, '<b>$1</b>');
-        html = html.replace(/\\*([^\\*]+)\\*/g, '<i>$1</i>');
+        html = html.replace(/\`\`\`([\\s\\S]*?)\`\`\`/g, '<pre class="discord-pre"><code class="scrollbar-ghost">$1</code></pre>');
+        html = html.replace(/\`([^\`]+)\`/g, '<code class="discord-inline-code">$1</code>');
+        html = html.replace(/\\*\\*([^*]+)\\*\\*/g, '<b>$1</b>');
+        html = html.replace(/\\*([^*]+)\\*/g, '<i>$1</i>');
         html = html.replace(/_([^_]+)_/g, '<i>$1</i>');
         html = html.replace(/__([^_]+)__/g, '<u>$1</u>');
         html = html.replace(/~~([^~]+)~~/g, '<s>$1</s>');
