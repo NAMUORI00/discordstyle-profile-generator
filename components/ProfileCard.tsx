@@ -268,7 +268,9 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile, setIsPlaying, isPlay
         
         <div className="mb-6">
             <h3 className="text-xs font-bold text-white/70 uppercase mb-2">About Me</h3>
-            <div className="text-sm text-gray-100 whitespace-pre-line leading-relaxed" dangerouslySetInnerHTML={{ __html: parseDiscordMarkdown(profile.bio) }} />
+            <div className="max-h-[120px] overflow-y-auto custom-scrollbar">
+                <div className="text-sm text-gray-100 whitespace-pre-line leading-relaxed pr-1" dangerouslySetInnerHTML={{ __html: parseDiscordMarkdown(profile.bio) }} />
+            </div>
             {profile.birthday && profile.showBirthday && (
                 <div className="flex items-center gap-2 mt-3 text-gray-400 text-xs"><Cake size={14} /><span>{new Date(profile.birthday).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</span></div>
             )}
