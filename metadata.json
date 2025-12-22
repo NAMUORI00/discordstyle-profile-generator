@@ -1,0 +1,5 @@
+{
+  "name": "DiscordStyle Profile Generator",
+  "description": "A Discord-inspired profile creator that generates a standalone HTML file with a built-in YouTube music player and NCS-style audio visualizer.",
+  "requestFramePermissions": []
+}
