@@ -96,16 +96,16 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile, setIsPlaying, isPlay
     const p = event.target as any;
     setPlayer(p);
     p.setVolume(volume);
-    if (activePlaylist) p.cuePlaylist({ listType: 'playlist', list: activePlaylist.playlistId, index: 0, startSeconds: 0 });
     updateTrackInfo(p);
-    // 플레이어가 완전히 초기화된 후 준비 상태 설정
-    setTimeout(() => setIsPlayerReady(true), 150);
+    setIsPlayerReady(true);
   };
 
   const onStateChange: YouTubeProps['onStateChange'] = (event) => {
     if (event.data === 1) { setIsPlaying(true); updateTrackInfo(event.target); }
-    else if (event.data === 2) { setIsPlaying(false); }
-    else if (event.data === -1) { updateTrackInfo(event.target); }
+    else if (event.data === 2 || event.data === -1 || event.data === 0) {
+      setIsPlaying(false);
+      if (event.data === -1) updateTrackInfo(event.target);
+    }
   };
 
   const updateTrackInfo = (target: any) => {
@@ -171,7 +171,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile, setIsPlaying, isPlay
 
   const onScannerError = () => { if (scanner) { const nextIdx = scanIndexRef.current + 1; scanIndexRef.current = nextIdx; scanner.playVideoAt(nextIdx); } };
 
-  const handlePlayPause = () => { if (!player) return; if (isPlaying) player.pauseVideo(); else player.playVideo(); };
+  const handlePlayPause = () => { if (!player || !isPlayerReady) return; if (isPlaying) player.pauseVideo(); else player.playVideo(); };
   const handleNext = () => { if(player) player.nextVideo(); };
   const handlePrev = () => { if(player) player.previousVideo(); };
   const handlePlaylistSwitch = (id: string) => { setActivePlaylistId(id); setIsDrawerOpen(false); };
