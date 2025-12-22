@@ -2,21 +2,23 @@
  * ProfileCard Bundle Entry Point
  *
  * 이 파일은 standalone HTML 생성용 번들의 진입점입니다.
- * ProfileCard 컴포넌트와 필요한 의존성을 전역으로 노출합니다.
+ * ProfileCard와 MusicCard 컴포넌트를 전역으로 노출합니다.
  */
 
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import ProfileCard from './ProfileCard';
+import MusicCard from './MusicCard';
 import { UserProfile } from '../types';
 import { STATUS_COLORS } from '../constants';
 
-// ProfileCard를 전역으로 노출
+// 컴포넌트를 전역으로 노출
 (window as any).ProfileCard = ProfileCard;
+(window as any).MusicCard = MusicCard;
 (window as any).STATUS_COLORS = STATUS_COLORS;
 
-// State를 관리하는 Wrapper 컴포넌트
-const ProfileCardWrapper: React.FC<{
+// State를 관리하고 두 카드를 렌더링하는 Wrapper 컴포넌트
+const ProfileMusicWrapper: React.FC<{
   profile: UserProfile;
   onPlayingChange?: (playing: boolean) => void;
 }> = ({ profile, onPlayingChange }) => {
@@ -27,11 +29,19 @@ const ProfileCardWrapper: React.FC<{
     onPlayingChange?.(playing);
   }, [onPlayingChange]);
 
-  return React.createElement(ProfileCard, {
-    profile,
-    isPlaying,
-    setIsPlaying,
-  });
+  return React.createElement(
+    'div',
+    {
+      className: 'flex flex-col lg:flex-row gap-4 items-start justify-center',
+      style: { width: '100%' }
+    },
+    React.createElement(ProfileCard, { profile }),
+    profile.musicEnabled && React.createElement(MusicCard, {
+      profile,
+      isPlaying,
+      setIsPlaying,
+    })
+  );
 };
 
 // 편의를 위한 렌더 헬퍼 함수
@@ -48,7 +58,7 @@ const ProfileCardWrapper: React.FC<{
 
   const root = createRoot(container);
   root.render(
-    React.createElement(ProfileCardWrapper, {
+    React.createElement(ProfileMusicWrapper, {
       profile,
       onPlayingChange: options?.onPlayingChange,
     })
@@ -58,5 +68,5 @@ const ProfileCardWrapper: React.FC<{
 };
 
 // 타입 정보도 노출 (개발 편의)
-export { ProfileCard, STATUS_COLORS };
+export { ProfileCard, MusicCard, STATUS_COLORS };
 export type { UserProfile };

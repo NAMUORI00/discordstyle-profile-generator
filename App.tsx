@@ -4,6 +4,7 @@ import { DEFAULT_PROFILE } from './constants';
 import { generateStandaloneHTML } from './services/generator';
 import EditorForm from './components/EditorForm';
 import ProfileCard from './components/ProfileCard';
+import MusicCard from './components/MusicCard';
 import Visualizer from './components/Visualizer';
 
 const App: React.FC = () => {
@@ -51,12 +52,17 @@ const App: React.FC = () => {
         {/* Background Visualizer (Simulated NCS) */}
         <Visualizer isPlaying={isPlaying} primaryColor={profile.theme.primary} />
 
-        {/* Profile Card Centerpiece */}
-        <ProfileCard 
-            profile={profile} 
-            isPlaying={isPlaying} 
-            setIsPlaying={setIsPlaying} 
-        />
+        {/* Profile Cards Container - Responsive Layout */}
+        <div className="flex flex-col lg:flex-row gap-4 items-start justify-center z-10">
+          <ProfileCard profile={profile} />
+          {profile.musicEnabled && (
+            <MusicCard
+              profile={profile}
+              isPlaying={isPlaying}
+              setIsPlaying={setIsPlaying}
+            />
+          )}
+        </div>
         
         {/* Info Overlay */}
         <div className="absolute bottom-4 right-4 text-xs text-gray-500 opacity-50 pointer-events-none">

@@ -167,7 +167,7 @@ export const generateStandaloneHTML = (profile: UserProfile): string => {
 
     <!-- React Root -->
     <div class="center-wrapper">
-        <div id="profile-root" style="width: 100%; max-width: 600px;"></div>
+        <div id="profile-root" style="width: 100%; max-width: 1000px;"></div>
     </div>
 
     <!-- Visualizer Script -->
