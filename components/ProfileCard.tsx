@@ -222,10 +222,10 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile, setIsPlaying, isPlay
               )}
           </div>
           <p className="text-white text-xs mt-4 text-center opacity-70">영상 플레이어 모드입니다.</p>
-          <button 
+          <button
             onClick={() => setIsPlayerVisible(false)}
-            className="mt-4 px-6 py-2 rounded-full font-bold text-sm transition-transform active:scale-95"
-            style={{ backgroundColor: profile.theme.button, color: '#fff' }}
+            className="mt-4 px-6 py-2 rounded-full font-bold text-sm transition-transform active:scale-95 text-white"
+            style={{ backgroundColor: profile.theme.button }}
           >
             플레이어 숨기기
           </button>
@@ -309,21 +309,21 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile, setIsPlaying, isPlay
                             </div>
                             
                             <div className="flex items-center gap-2 mt-1.5 w-full max-w-[120px]">
-                                <button onClick={toggleMute} className="text-gray-400 hover:text-white">{getVolumeIcon()}</button>
-                                <input type="range" min="0" max="100" value={isMuted ? 0 : volume} onChange={handleVolumeChange} className="w-full h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer" style={{ accentColor: profile.theme.button }} />
+                                <button onClick={toggleMute} className="text-gray-400 hover:text-white" aria-label={isMuted ? "Unmute" : "Mute"}>{getVolumeIcon()}</button>
+                                <input type="range" min="0" max="100" value={isMuted ? 0 : volume} onChange={handleVolumeChange} className="w-full h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer" style={{ accentColor: profile.theme.button }} aria-label="Volume control" />
                             </div>
                         </div>
 
                         <div className="flex items-center gap-1 flex-shrink-0">
-                            <button onClick={() => setIsPlayerVisible(!isPlayerVisible)} className={`p-1 transition-colors ${isPlayerVisible ? 'text-white' : 'text-gray-400 hover:text-white'}`} title="플레이어 보기">
+                            <button onClick={() => setIsPlayerVisible(!isPlayerVisible)} className={`p-1 transition-colors ${isPlayerVisible ? 'text-white' : 'text-gray-400 hover:text-white'}`} title="플레이어 보기" aria-label="Toggle player visibility">
                                 {isPlayerVisible ? <EyeOff size={16} /> : <Eye size={16} />}
                             </button>
                             <div className="w-[1px] h-5 bg-white/10 mx-1"></div>
-                            <button onClick={handlePrev} className="text-gray-300 hover:text-white p-1"><SkipBack size={16} fill="currentColor" /></button>
-                            <button onClick={handlePlayPause} className="p-1 transition-transform hover:scale-105" style={{ color: profile.theme.button }}>{isPlaying ? <Pause size={20} fill="currentColor" /> : <Play size={20} fill="currentColor" />}</button>
-                            <button onClick={handleNext} className="text-gray-300 hover:text-white p-1"><SkipForward size={16} fill="currentColor" /></button>
-                            <button onClick={() => toggleDrawer('playlists')} className={`p-1 transition-colors ${isDrawerOpen && drawerMode === 'playlists' ? 'text-white' : 'text-gray-400 hover:text-white'}`} title="플레이리스트 선택"><ListMusic size={16} /></button>
-                            <button onClick={() => toggleDrawer('tracks')} className={`p-1 transition-colors ${isDrawerOpen && drawerMode === 'tracks' ? 'text-white' : 'text-gray-400 hover:text-white'}`} title="트랙 보기"><List size={16} /></button>
+                            <button onClick={handlePrev} className="text-gray-300 hover:text-white p-1" aria-label="Previous track"><SkipBack size={16} fill="currentColor" /></button>
+                            <button onClick={handlePlayPause} className="p-1 transition-transform hover:scale-105" style={{ color: profile.theme.button }} aria-label={isPlaying ? "Pause" : "Play"}>{isPlaying ? <Pause size={20} fill="currentColor" /> : <Play size={20} fill="currentColor" />}</button>
+                            <button onClick={handleNext} className="text-gray-300 hover:text-white p-1" aria-label="Next track"><SkipForward size={16} fill="currentColor" /></button>
+                            <button onClick={() => toggleDrawer('playlists')} className={`p-1 transition-colors ${isDrawerOpen && drawerMode === 'playlists' ? 'text-white' : 'text-gray-400 hover:text-white'}`} title="플레이리스트 선택" aria-label="Select playlist"><ListMusic size={16} /></button>
+                            <button onClick={() => toggleDrawer('tracks')} className={`p-1 transition-colors ${isDrawerOpen && drawerMode === 'tracks' ? 'text-white' : 'text-gray-400 hover:text-white'}`} title="트랙 보기" aria-label="View tracks"><List size={16} /></button>
                         </div>
                     </div>
 
@@ -331,7 +331,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile, setIsPlaying, isPlay
                         <div className="border-t border-white/10 bg-[rgba(0,0,0,0.2)] flex flex-col">
                              <div className="flex items-center justify-between px-3 py-1.5 bg-black/20">
                                  <span className="text-[10px] text-gray-400 uppercase font-bold tracking-wider">{drawerMode === 'playlists' ? 'Select Playlist' : 'Playlist Tracks'}</span>
-                                 <button onClick={() => setIsDrawerOpen(false)}><ChevronUp size={12} className="text-gray-500" /></button>
+                                 <button onClick={() => setIsDrawerOpen(false)} aria-label="Close drawer"><ChevronUp size={12} className="text-gray-500" /></button>
                              </div>
                              <div className="p-1 max-h-[150px] overflow-y-auto custom-scrollbar">
                                 {drawerMode === 'playlists' ? (profile.playlists.map((pl) => (
@@ -348,7 +348,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile, setIsPlaying, isPlay
         )}
 
         {profile.musicEnabled && activePlaylist && (
-            <div style={{ position: 'fixed', top: '-10000px', left: '-10000px', opacity: 0, pointerEvents: 'none' }}>
+            <div className="fixed -top-[10000px] -left-[10000px] opacity-0 pointer-events-none">
                 <YouTube 
                     key={`scan-player-${activePlaylist.id}`} 
                     videoId="" 

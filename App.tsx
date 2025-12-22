@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { UserProfile } from './types';
-import { DEFAULT_PROFILE, DISCORD_COLORS } from './constants';
+import { DEFAULT_PROFILE } from './constants';
 import { generateStandaloneHTML } from './services/generator';
 import EditorForm from './components/EditorForm';
 import ProfileCard from './components/ProfileCard';
@@ -46,10 +46,8 @@ const App: React.FC = () => {
       />
 
       {/* Preview Area */}
-      <div 
-        className="flex-1 relative flex items-center justify-center p-8 overflow-hidden"
-        style={{ backgroundColor: DISCORD_COLORS.bg }}
-      >
+      <div className="flex-1 relative flex items-center justify-center p-8 overflow-hidden bg-discord-bg">
+
         {/* Background Visualizer (Simulated NCS) */}
         <Visualizer isPlaying={isPlaying} primaryColor={profile.theme.primary} />
 

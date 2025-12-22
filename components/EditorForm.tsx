@@ -1,6 +1,5 @@
 import React, { useState, useRef } from 'react';
 import { UserProfile, Connection, Badge, StatusType, PlaylistItem, BadgeStyle } from '../types';
-import { DISCORD_COLORS } from '../constants';
 import { Bold, Italic, Underline, Strikethrough, Code, Quote, EyeOff, Link as LinkIcon, Copy, Check, Download, Palette } from 'lucide-react';
 
 interface EditorFormProps {
@@ -175,7 +174,7 @@ const EditorForm: React.FC<EditorFormProps> = ({ profile, onChange, onDownload, 
   };
 
   return (
-    <div className="w-full md:w-1/3 p-6 flex flex-col gap-6 overflow-y-auto h-full scrollbar-thin scrollbar-thumb-gray-700" style={{ backgroundColor: DISCORD_COLORS.bgSecondary }}>
+    <div className="w-full md:w-1/3 p-6 flex flex-col gap-6 overflow-y-auto h-full scrollbar-thin scrollbar-thumb-gray-700 bg-discord-bgSecondary">
       <h2 className="text-xl font-bold text-white mb-2">Profile Editor</h2>
       
       {/* Identity */}
@@ -201,8 +200,9 @@ const EditorForm: React.FC<EditorFormProps> = ({ profile, onChange, onDownload, 
         {profile.identityFormat === 'modern' ? (
              <div className="space-y-3">
                  <div>
-                    <label className="text-xs text-gray-500 block mb-1">Display Name</label>
+                    <label htmlFor="displayName" className="text-xs text-gray-500 block mb-1">Display Name</label>
                     <input
+                        id="displayName"
                         type="text"
                         value={profile.displayName}
                         onChange={(e) => handleChange('displayName', e.target.value)}
@@ -211,21 +211,24 @@ const EditorForm: React.FC<EditorFormProps> = ({ profile, onChange, onDownload, 
                     />
                  </div>
                  <div>
-                    <label className="text-xs text-gray-500 block mb-1">Username (Unique ID)</label>
+                    <label htmlFor="username" className="text-xs text-gray-500 block mb-1">Username (Unique ID)</label>
                     <div className="flex items-center bg-gray-900 rounded border border-gray-700 px-2 text-gray-400">
                         @
                         <input
+                            id="username"
                             type="text"
                             value={profile.username}
                             onChange={(e) => handleChange('username', e.target.value)}
                             placeholder="username"
+                            aria-label="Username"
                             className="w-full bg-transparent text-white p-2 focus:outline-none"
                         />
                     </div>
                  </div>
                  <div>
-                    <label className="text-xs text-gray-500 block mb-1">Pronouns</label>
+                    <label htmlFor="pronouns" className="text-xs text-gray-500 block mb-1">Pronouns</label>
                     <input
+                        id="pronouns"
                         type="text"
                         value={profile.pronouns || ''}
                         onChange={(e) => handleChange('pronouns', e.target.value)}
@@ -237,8 +240,9 @@ const EditorForm: React.FC<EditorFormProps> = ({ profile, onChange, onDownload, 
         ) : (
              <div className="flex gap-2">
                 <div className="flex-1">
-                    <label className="text-xs text-gray-500 block mb-1">Username</label>
+                    <label htmlFor="username-legacy" className="text-xs text-gray-500 block mb-1">Username</label>
                     <input
+                      id="username-legacy"
                       type="text"
                       value={profile.username}
                       onChange={(e) => handleChange('username', e.target.value)}
@@ -247,15 +251,17 @@ const EditorForm: React.FC<EditorFormProps> = ({ profile, onChange, onDownload, 
                     />
                 </div>
                  <div className="w-24">
-                    <label className="text-xs text-gray-500 block mb-1">Tag</label>
+                    <label htmlFor="discriminator" className="text-xs text-gray-500 block mb-1">Tag</label>
                     <div className="flex items-center bg-gray-900 rounded border border-gray-700 px-2 text-gray-400">
                         #
                         <input
+                          id="discriminator"
                           type="text"
                           value={profile.discriminator}
                           onChange={(e) => handleChange('discriminator', e.target.value)}
                           placeholder="0000"
                           maxLength={4}
+                          aria-label="Discord Tag"
                           className="w-full bg-transparent text-white p-2 focus:outline-none"
                         />
                      </div>
@@ -266,8 +272,9 @@ const EditorForm: React.FC<EditorFormProps> = ({ profile, onChange, onDownload, 
         {/* Birthday */}
         <div className="flex gap-2 items-end">
              <div className="flex-1">
-                <label className="text-xs text-gray-500 block mb-1">Birthday</label>
+                <label htmlFor="birthday" className="text-xs text-gray-500 block mb-1">Birthday</label>
                 <input
+                    id="birthday"
                     type="date"
                     value={profile.birthday || ''}
                     onChange={(e) => handleChange('birthday', e.target.value)}
@@ -287,8 +294,9 @@ const EditorForm: React.FC<EditorFormProps> = ({ profile, onChange, onDownload, 
         </div>
 
         <div>
-           <label className="text-xs text-gray-500 block mb-1">Status</label>
-           <select 
+           <label htmlFor="status" className="text-xs text-gray-500 block mb-1">Status</label>
+           <select
+             id="status"
              value={profile.status}
              onChange={(e) => handleChange('status', e.target.value as StatusType)}
              className="w-full bg-gray-900 text-white p-2 rounded border border-gray-700 focus:border-blue-500 focus:outline-none text-sm"
@@ -303,17 +311,18 @@ const EditorForm: React.FC<EditorFormProps> = ({ profile, onChange, onDownload, 
         {/* Bio Editor */}
         <div>
            <div className="flex justify-between items-center mb-1">
-               <label className="text-xs text-gray-500">About Me (Markdown Supported)</label>
+               <label htmlFor="bio" className="text-xs text-gray-500">About Me (Markdown Supported)</label>
            </div>
            <div className="bg-gray-900 rounded border border-gray-700 overflow-hidden focus-within:border-blue-500 transition-colors">
                <div className="flex gap-1 p-1 bg-gray-800 border-b border-gray-700 overflow-x-auto min-h-[36px] items-center">
                    {showLinkInput ? (
                        <div className="flex flex-1 items-center gap-2 animate-in fade-in zoom-in duration-200">
-                           <input 
-                               type="text" 
+                           <input
+                               type="text"
                                value={linkUrl}
                                onChange={(e) => setLinkUrl(e.target.value)}
                                placeholder="https://example.com"
+                               aria-label="Link URL"
                                className="flex-1 bg-gray-900 text-white text-xs px-2 py-1 rounded border border-gray-600 focus:border-blue-500 outline-none"
                                autoFocus
                                onKeyDown={(e) => {
@@ -326,19 +335,20 @@ const EditorForm: React.FC<EditorFormProps> = ({ profile, onChange, onDownload, 
                        </div>
                    ) : (
                        <>
-                           <button onClick={() => insertFormatting('**', '**')} className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-700 rounded transition-colors" title="Bold"><Bold size={14}/></button>
-                           <button onClick={() => insertFormatting('*', '*')} className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-700 rounded transition-colors" title="Italic"><Italic size={14}/></button>
-                           <button onClick={() => insertFormatting('__', '__')} className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-700 rounded transition-colors" title="Underline"><Underline size={14}/></button>
-                           <button onClick={() => insertFormatting('~~', '~~')} className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-700 rounded transition-colors" title="Strikethrough"><Strikethrough size={14}/></button>
+                           <button onClick={() => insertFormatting('**', '**')} className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-700 rounded transition-colors" title="Bold" aria-label="Bold"><Bold size={14}/></button>
+                           <button onClick={() => insertFormatting('*', '*')} className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-700 rounded transition-colors" title="Italic" aria-label="Italic"><Italic size={14}/></button>
+                           <button onClick={() => insertFormatting('__', '__')} className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-700 rounded transition-colors" title="Underline" aria-label="Underline"><Underline size={14}/></button>
+                           <button onClick={() => insertFormatting('~~', '~~')} className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-700 rounded transition-colors" title="Strikethrough" aria-label="Strikethrough"><Strikethrough size={14}/></button>
                            <div className="w-[1px] bg-gray-700 mx-1 h-4"></div>
-                           <button onClick={() => insertFormatting('`', '`')} className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-700 rounded transition-colors" title="Code"><Code size={14}/></button>
-                           <button onClick={() => insertFormatting('> ', '')} className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-700 rounded transition-colors" title="Quote"><Quote size={14}/></button>
-                           <button onClick={() => insertFormatting('||', '||')} className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-700 rounded transition-colors" title="Spoiler"><EyeOff size={14}/></button>
-                           <button onClick={handleLinkClick} className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-700 rounded transition-colors" title="Link"><LinkIcon size={14}/></button>
+                           <button onClick={() => insertFormatting('`', '`')} className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-700 rounded transition-colors" title="Code" aria-label="Code Block"><Code size={14}/></button>
+                           <button onClick={() => insertFormatting('> ', '')} className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-700 rounded transition-colors" title="Quote" aria-label="Quote"><Quote size={14}/></button>
+                           <button onClick={() => insertFormatting('||', '||')} className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-700 rounded transition-colors" title="Spoiler" aria-label="Spoiler"><EyeOff size={14}/></button>
+                           <button onClick={handleLinkClick} className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-700 rounded transition-colors" title="Link" aria-label="Add Link"><LinkIcon size={14}/></button>
                        </>
                    )}
                </div>
                <textarea
+                    id="bio"
                     ref={bioInputRef}
                     value={profile.bio}
                     onChange={(e) => handleChange('bio', e.target.value)}
@@ -361,7 +371,7 @@ const EditorForm: React.FC<EditorFormProps> = ({ profile, onChange, onDownload, 
                 >
                     <div className="w-2 h-2 rounded-full" style={{ backgroundColor: badge.color }}></div>
                     <span className="text-xs text-white font-bold">{badge.label}</span>
-                    <button onClick={() => handleRemoveBadge(badge.id)} className="text-gray-500 hover:text-red-400 ml-1">
+                    <button onClick={() => handleRemoveBadge(badge.id)} className="text-gray-500 hover:text-red-400 ml-1" aria-label="Remove badge">
                         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                     </button>
                 </div>
@@ -374,6 +384,7 @@ const EditorForm: React.FC<EditorFormProps> = ({ profile, onChange, onDownload, 
                 value={newBadgeLabel}
                 onChange={(e) => setNewBadgeLabel(e.target.value)}
                 placeholder="Badge Label (e.g. VIP)"
+                aria-label="Badge Label"
                 className="w-full bg-gray-900 text-white p-2 rounded border border-gray-600 focus:border-blue-500 focus:outline-none text-sm"
             />
             <div className="flex gap-2">
@@ -385,11 +396,13 @@ const EditorForm: React.FC<EditorFormProps> = ({ profile, onChange, onDownload, 
                         onChange={(e) => setNewBadgeColor(e.target.value)}
                         className="h-6 w-8 cursor-pointer bg-transparent border-none p-0"
                         title="Badge Color"
+                        aria-label="Badge Color"
                     />
                 </div>
-                <select 
+                <select
                     value={newBadgeStyle}
                     onChange={(e) => setNewBadgeStyle(e.target.value as BadgeStyle)}
+                    aria-label="Badge Style"
                     className="flex-1 bg-gray-900 text-white text-xs px-2 rounded border border-gray-600 focus:outline-none"
                 >
                     <option value="solid">Solid</option>
@@ -411,8 +424,9 @@ const EditorForm: React.FC<EditorFormProps> = ({ profile, onChange, onDownload, 
       <div className="space-y-4">
         <h3 className="text-gray-400 text-xs font-bold uppercase">Images</h3>
         <div>
-            <label className="text-xs text-gray-500 block mb-1">Avatar URL</label>
+            <label htmlFor="avatarUrl" className="text-xs text-gray-500 block mb-1">Avatar URL</label>
             <input
+            id="avatarUrl"
             type="text"
             value={profile.avatarUrl}
             onChange={(e) => handleChange('avatarUrl', e.target.value)}
@@ -420,8 +434,9 @@ const EditorForm: React.FC<EditorFormProps> = ({ profile, onChange, onDownload, 
             />
         </div>
         <div>
-            <label className="text-xs text-gray-500 block mb-1">Banner URL</label>
+            <label htmlFor="bannerUrl" className="text-xs text-gray-500 block mb-1">Banner URL</label>
             <input
+            id="bannerUrl"
             type="text"
             value={profile.bannerUrl}
             onChange={(e) => handleChange('bannerUrl', e.target.value)}
@@ -436,25 +451,29 @@ const EditorForm: React.FC<EditorFormProps> = ({ profile, onChange, onDownload, 
         
         <div className="grid grid-cols-2 gap-4">
              <div>
-                <label className="text-xs text-gray-500 block mb-1">Primary Color</label>
+                <label htmlFor="primaryColor" className="text-xs text-gray-500 block mb-1">Primary Color</label>
                 <div className="flex items-center gap-2 bg-gray-900 p-1 rounded border border-gray-700">
                     <input
+                        id="primaryColor"
                         type="color"
                         value={profile.theme.primary}
                         onChange={(e) => handleThemeChange('primary', e.target.value)}
+                        aria-label="Primary Color"
                         className="h-6 w-8 cursor-pointer bg-transparent border-none p-0"
                     />
                     <span className="text-xs text-gray-300 font-mono">{profile.theme.primary}</span>
                 </div>
              </div>
-             
+
              <div>
-                <label className="text-xs text-gray-500 block mb-1">Button Color</label>
+                <label htmlFor="buttonColor" className="text-xs text-gray-500 block mb-1">Button Color</label>
                 <div className="flex items-center gap-2 bg-gray-900 p-1 rounded border border-gray-700">
                     <input
+                        id="buttonColor"
                         type="color"
                         value={profile.theme.button}
                         onChange={(e) => handleThemeChange('button', e.target.value)}
+                        aria-label="Button Color"
                         className="h-6 w-8 cursor-pointer bg-transparent border-none p-0"
                     />
                      <span className="text-xs text-gray-300 font-mono">{profile.theme.button}</span>
@@ -463,12 +482,14 @@ const EditorForm: React.FC<EditorFormProps> = ({ profile, onChange, onDownload, 
         </div>
 
         <div>
-            <label className="text-xs text-gray-500 block mb-1">Card Background</label>
+            <label htmlFor="background" className="text-xs text-gray-500 block mb-1">Card Background</label>
             <div className="flex items-center gap-2 bg-gray-900 p-1 rounded border border-gray-700">
                 <input
+                    id="background"
                     type="color"
                     value={profile.theme.background}
                     onChange={(e) => handleThemeChange('background', e.target.value)}
+                    aria-label="Card Background Color"
                     className="h-6 w-8 cursor-pointer bg-transparent border-none p-0"
                 />
                  <span className="text-xs text-gray-300 font-mono">{profile.theme.background}</span>
@@ -487,12 +508,14 @@ const EditorForm: React.FC<EditorFormProps> = ({ profile, onChange, onDownload, 
 
         {profile.theme.mode === 'gradient' && (
              <div>
-                <label className="text-xs text-gray-500 block mb-1">Secondary Color (Gradient End)</label>
+                <label htmlFor="secondaryColor" className="text-xs text-gray-500 block mb-1">Secondary Color (Gradient End)</label>
                 <div className="flex items-center gap-2 bg-gray-900 p-1 rounded border border-gray-700">
                     <input
+                        id="secondaryColor"
                         type="color"
                         value={profile.theme.secondary}
                         onChange={(e) => handleThemeChange('secondary', e.target.value)}
+                        aria-label="Secondary Color"
                         className="h-6 w-8 cursor-pointer bg-transparent border-none p-0"
                     />
                      <span className="text-xs text-gray-300 font-mono">{profile.theme.secondary}</span>
@@ -516,9 +539,10 @@ const EditorForm: React.FC<EditorFormProps> = ({ profile, onChange, onDownload, 
                         />
                         <span className="text-sm text-gray-300 truncate">{conn.label}</span>
                     </div>
-                    <button 
+                    <button
                         onClick={() => handleRemoveConnection(conn.id)}
                         className="text-red-400 hover:text-red-300 p-1"
+                        aria-label="Remove connection"
                     >
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                     </button>
@@ -532,6 +556,7 @@ const EditorForm: React.FC<EditorFormProps> = ({ profile, onChange, onDownload, 
                 value={newConnLabel}
                 onChange={(e) => setNewConnLabel(e.target.value)}
                 placeholder="Label (e.g. GitHub)"
+                aria-label="Connection Label"
                 className="w-full bg-gray-900 text-white p-2 rounded border border-gray-600 focus:border-blue-500 focus:outline-none text-sm"
             />
             <input
@@ -539,6 +564,7 @@ const EditorForm: React.FC<EditorFormProps> = ({ profile, onChange, onDownload, 
                 value={newConnUrl}
                 onChange={(e) => setNewConnUrl(e.target.value)}
                 placeholder="URL (https://...)"
+                aria-label="Connection URL"
                 className="w-full bg-gray-900 text-white p-2 rounded border border-gray-600 focus:border-blue-500 focus:outline-none text-sm"
             />
             <button
@@ -575,9 +601,10 @@ const EditorForm: React.FC<EditorFormProps> = ({ profile, onChange, onDownload, 
                                 <span className="text-sm text-gray-200 truncate font-medium">{playlist.label}</span>
                                 <span className="text-[10px] text-gray-500 truncate">{playlist.playlistId}</span>
                             </div>
-                            <button 
+                            <button
                                 onClick={() => handleRemovePlaylist(playlist.id)}
                                 className="text-red-400 hover:text-red-300 p-1"
+                                aria-label="Remove playlist"
                             >
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                             </button>
@@ -591,6 +618,7 @@ const EditorForm: React.FC<EditorFormProps> = ({ profile, onChange, onDownload, 
                         value={newPlaylistLabel}
                         onChange={(e) => setNewPlaylistLabel(e.target.value)}
                         placeholder="Playlist Name (Optional)"
+                        aria-label="Playlist Name"
                         className="w-full bg-gray-900 text-white p-2 rounded border border-gray-600 focus:border-blue-500 focus:outline-none text-sm"
                     />
                     <input
@@ -599,6 +627,7 @@ const EditorForm: React.FC<EditorFormProps> = ({ profile, onChange, onDownload, 
                         onChange={(e) => setNewPlaylistUrl(e.target.value)}
                         className="w-full bg-gray-900 text-white p-2 rounded border border-gray-600 focus:border-blue-500 focus:outline-none text-sm"
                         placeholder="Paste Playlist URL or ID"
+                        aria-label="Playlist URL or ID"
                     />
                     <button
                         onClick={handleAddPlaylist}
@@ -615,8 +644,7 @@ const EditorForm: React.FC<EditorFormProps> = ({ profile, onChange, onDownload, 
       <div className="mt-auto pt-6 flex gap-3">
         <button
             onClick={onDownload}
-            className="flex-1 hover:brightness-110 text-white font-bold py-3 px-2 rounded transition-all flex items-center justify-center gap-2 shadow-lg text-sm"
-            style={{ backgroundColor: DISCORD_COLORS.green }}
+            className="flex-1 hover:brightness-110 text-white font-bold py-3 px-2 rounded transition-all flex items-center justify-center gap-2 shadow-lg text-sm bg-discord-green"
         >
             <Download size={18} />
             Download HTML
