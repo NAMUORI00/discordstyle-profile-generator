@@ -108,11 +108,7 @@ export const generateStandaloneHTML = (profile: UserProfile): string => {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${profile.displayName || profile.username}'s Profile</title>
 
-    <!-- React CDN -->
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-
-    <!-- Tailwind CSS CDN -->
+    <!-- Tailwind CSS CDN (스타일링용) -->
     <script src="https://cdn.tailwindcss.com"></script>
 
     <style>

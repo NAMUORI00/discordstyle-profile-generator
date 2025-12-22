@@ -22,13 +22,8 @@ export default defineConfig({
       formats: ['iife'],
     },
     rollupOptions: {
-      // React/ReactDOM만 외부 의존성, 나머지는 번들에 포함
-      external: ['react', 'react-dom'],
+      // 모든 의존성을 번들에 포함 (React 버전 호환성 문제 방지)
       output: {
-        globals: {
-          react: 'React',
-          'react-dom': 'ReactDOM',
-        },
         inlineDynamicImports: true,
       },
     },
