@@ -206,6 +206,13 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile, setIsPlaying, isPlay
           .discord-spoiler.revealed { background: #4f545c; color: inherit; }
           .discord-link { color: #00b0f4; text-decoration: none; }
           .discord-link:hover { text-decoration: underline; }
+          .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+          .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+          .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 3px; }
+          .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.3); }
+          .scrollbar-ghost::-webkit-scrollbar { width: 4px; height: 4px; }
+          .scrollbar-ghost::-webkit-scrollbar-track { background: transparent; }
+          .scrollbar-ghost::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
       `}</style>
       
       {/* Pop-out Player Overlay - Always Mounted, Toggle Visibility */}
@@ -298,14 +305,14 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile, setIsPlaying, isPlay
                             {currentVideoId ? <img src={`https://img.youtube.com/vi/${currentVideoId}/hqdefault.jpg`} alt="Art" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center bg-gray-800"><Music size={20} className="text-gray-500" /></div>}
                         </div>
 
-                        <div className="flex-1 min-w-0 flex flex-col justify-center">
-                            <div className="text-white text-sm font-bold truncate flex items-center gap-1">
-                                <span className="truncate">{trackTitle}</span>
+                        <div className="flex-1 min-w-0 overflow-hidden flex flex-col justify-center">
+                            <div className="text-white text-sm font-bold truncate">
+                                <span>{trackTitle}</span>
                                 {trackTitle.includes("Advertisement") && <span className="text-[8px] bg-yellow-500 text-black px-1 rounded">AD</span>}
                             </div>
-                            <div className="text-gray-300 text-xs truncate flex items-center gap-2">
-                                <span>{trackAuthor}</span>
-                                {totalTracks > 0 && <span className="bg-white/10 px-1 rounded text-[10px] text-white/70">{trackIndex} / {totalTracks}</span>}
+                            <div className="text-gray-300 text-xs flex items-center gap-2 overflow-hidden">
+                                <span className="truncate flex-shrink min-w-0">{trackAuthor}</span>
+                                {totalTracks > 0 && <span className="bg-white/10 px-1 rounded text-[10px] text-white/70 flex-shrink-0 whitespace-nowrap">{trackIndex} / {totalTracks}</span>}
                             </div>
                             
                             <div className="flex items-center gap-2 mt-1.5 w-full max-w-[120px]">

@@ -110,12 +110,30 @@ export const generateStandaloneHTML = (profile: UserProfile): string => {
 
     <!-- Tailwind CSS CDN (스타일링용) -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              discord: {
+                bg: '#36393f',
+                bgSecondary: '#2f3136',
+                bgTertiary: '#202225',
+                green: '#3ba55c',
+              }
+            }
+          }
+        }
+      }
+    </script>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
 
     <style>
         body {
             background-color: #36393f;
             overflow: hidden;
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            font-family: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
             margin: 0;
             padding: 0;
         }
@@ -149,7 +167,7 @@ export const generateStandaloneHTML = (profile: UserProfile): string => {
 
     <!-- React Root -->
     <div class="center-wrapper">
-        <div id="profile-root"></div>
+        <div id="profile-root" style="width: 100%; max-width: 600px;"></div>
     </div>
 
     <!-- Visualizer Script -->

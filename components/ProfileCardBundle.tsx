@@ -15,6 +15,25 @@ import { STATUS_COLORS } from '../constants';
 (window as any).ProfileCard = ProfileCard;
 (window as any).STATUS_COLORS = STATUS_COLORS;
 
+// State를 관리하는 Wrapper 컴포넌트
+const ProfileCardWrapper: React.FC<{
+  profile: UserProfile;
+  onPlayingChange?: (playing: boolean) => void;
+}> = ({ profile, onPlayingChange }) => {
+  const [isPlaying, setIsPlayingState] = React.useState(false);
+
+  const setIsPlaying = React.useCallback((playing: boolean) => {
+    setIsPlayingState(playing);
+    onPlayingChange?.(playing);
+  }, [onPlayingChange]);
+
+  return React.createElement(ProfileCard, {
+    profile,
+    isPlaying,
+    setIsPlaying,
+  });
+};
+
 // 편의를 위한 렌더 헬퍼 함수
 (window as any).renderProfileCard = (
   containerId: string,
@@ -27,18 +46,11 @@ import { STATUS_COLORS } from '../constants';
     return null;
   }
 
-  let isPlaying = false;
-  const setIsPlaying = (playing: boolean) => {
-    isPlaying = playing;
-    options?.onPlayingChange?.(playing);
-  };
-
   const root = createRoot(container);
   root.render(
-    React.createElement(ProfileCard, {
+    React.createElement(ProfileCardWrapper, {
       profile,
-      isPlaying,
-      setIsPlaying,
+      onPlayingChange: options?.onPlayingChange,
     })
   );
 
