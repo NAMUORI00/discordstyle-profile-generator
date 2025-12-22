@@ -83,7 +83,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile, setIsPlaying, isPlay
       setTrackTitle("Loading Playlist...");
       scanIndexRef.current = 0;
       setIsScanning(true);
-      // 플레이리스트 변경 시 player 준비 상태는 유지 (이미 준비된 상태이므로)
+      setIsPlaying(false);
   }, [activePlaylist?.id]);
 
   const opts: YouTubeProps['opts'] = {
