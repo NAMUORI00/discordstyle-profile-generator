@@ -30,6 +30,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile, setIsPlaying, isPlay
   const [isMuted, setIsMuted] = useState(false);
   const [trackIndex, setTrackIndex] = useState(1);
   const [totalTracks, setTotalTracks] = useState(0);
+  const [isPlayerReady, setIsPlayerReady] = useState(false);
 
   const parseDiscordMarkdown = (text: string) => {
     let html = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -67,10 +68,14 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile, setIsPlaying, isPlay
   const activePlaylist = profile.playlists.find(p => p.id === activePlaylistId) || profile.playlists[0];
 
   useEffect(() => {
-      if (player && activePlaylist && player.loadPlaylist) {
-          player.loadPlaylist({ listType: 'playlist', list: activePlaylist.playlistId, index: 0, startSeconds: 0 });
+      if (isPlayerReady && player && activePlaylist && player.loadPlaylist) {
+          try {
+              player.loadPlaylist({ listType: 'playlist', list: activePlaylist.playlistId, index: 0, startSeconds: 0 });
+          } catch (e) {
+              console.error("loadPlaylist error:", e);
+          }
       }
-  }, [activePlaylist?.id, player]);
+  }, [activePlaylist?.id, isPlayerReady]);
 
   useEffect(() => {
       setScannedTracks([]);
@@ -78,6 +83,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile, setIsPlaying, isPlay
       setTrackTitle("Loading Playlist...");
       scanIndexRef.current = 0;
       setIsScanning(true);
+      // 플레이리스트 변경 시 player 준비 상태는 유지 (이미 준비된 상태이므로)
   }, [activePlaylist?.id]);
 
   const opts: YouTubeProps['opts'] = {
@@ -92,6 +98,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile, setIsPlaying, isPlay
     p.setVolume(volume);
     if (activePlaylist) p.cuePlaylist({ listType: 'playlist', list: activePlaylist.playlistId, index: 0, startSeconds: 0 });
     updateTrackInfo(p);
+    // 플레이어가 완전히 초기화된 후 준비 상태 설정
+    setTimeout(() => setIsPlayerReady(true), 150);
   };
 
   const onStateChange: YouTubeProps['onStateChange'] = (event) => {
