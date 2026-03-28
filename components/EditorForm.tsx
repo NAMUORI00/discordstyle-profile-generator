@@ -1,662 +1,364 @@
-import React, { useState, useRef } from 'react';
-import { UserProfile, Connection, Badge, StatusType, PlaylistItem, BadgeStyle } from '../types';
-import { Bold, Italic, Underline, Strikethrough, Code, Quote, EyeOff, Link as LinkIcon, Copy, Check, Download, Palette } from 'lucide-react';
+import React, { useState } from 'react';
+import { UserProfile, IconType, ButtonStyle, ProfileBadge, AboutTab, SocialButton } from '../types';
+import { BUTTON_PRESETS, escapeHtml } from '../constants';
 
 interface EditorFormProps {
   profile: UserProfile;
   onChange: (newProfile: UserProfile) => void;
   onDownload: () => void;
-  onCopy: () => void;
 }
 
-const EditorForm: React.FC<EditorFormProps> = ({ profile, onChange, onDownload, onCopy }) => {
-  const [newConnLabel, setNewConnLabel] = useState('');
-  const [newConnUrl, setNewConnUrl] = useState('');
-  
-  // Badge State
-  const [newBadgeLabel, setNewBadgeLabel] = useState('');
-  const [newBadgeColor, setNewBadgeColor] = useState('#5865F2');
-  const [newBadgeStyle, setNewBadgeStyle] = useState<BadgeStyle>('solid');
-  
-  // Playlist State
+const ICON_OPTIONS: { value: IconType; label: string }[] = [
+  { value: 'none', label: 'No Icon' },
+  { value: 'link', label: '🔗 Link' },
+  { value: 'discord', label: '👾 Discord' },
+  { value: 'github', label: '🐙 GitHub' },
+  { value: 'instagram', label: '📷 Insta' },
+  { value: 'twitter', label: '🐦 X(Tw)' },
+  { value: 'youtube', label: '▶️ YT' },
+  { value: 'naver', label: '🟩 Naver' },
+  { value: 'tistory', label: '🔠 Tistory' },
+];
+
+const BADGE_ICON_OPTIONS: { value: IconType; label: string }[] = [
+  { value: 'none', label: 'No Icon' },
+  { value: 'bot', label: 'Bot' },
+  { value: 'check', label: 'Check' },
+];
+
+const EditorForm: React.FC<EditorFormProps> = ({ profile, onChange, onDownload }) => {
   const [newPlaylistUrl, setNewPlaylistUrl] = useState('');
   const [newPlaylistLabel, setNewPlaylistLabel] = useState('');
 
-  // Link Editor State
-  const [showLinkInput, setShowLinkInput] = useState(false);
-  const [linkUrl, setLinkUrl] = useState('');
-  const selectionRef = useRef<{start: number, end: number} | null>(null);
-
-  // Copy Feedback State
-  const [isCopied, setIsCopied] = useState(false);
-
-  const bioInputRef = useRef<HTMLTextAreaElement>(null);
-
-  const handleChange = (field: keyof UserProfile, value: any) => {
-    onChange({ ...profile, [field]: value });
+  const update = (patch: Partial<UserProfile>) => {
+    onChange({ ...profile, ...patch });
   };
 
-  const handleThemeChange = (field: keyof UserProfile['theme'], value: any) => {
-    onChange({
-      ...profile,
-      theme: { ...profile.theme, [field]: value }
-    });
-  };
-
-  const handleCopyClick = () => {
-      onCopy();
-      setIsCopied(true);
-      setTimeout(() => setIsCopied(false), 2000);
-  };
-
-  // Bio Formatting Helpers
-  const insertFormatting = (prefix: string, suffix: string) => {
-    if (!bioInputRef.current) return;
-    const input = bioInputRef.current;
-    const start = input.selectionStart;
-    const end = input.selectionEnd;
-    const text = profile.bio;
-    
-    const before = text.substring(0, start);
-    const selection = text.substring(start, end);
-    const after = text.substring(end);
-    
-    const newText = before + prefix + selection + suffix + after;
-    handleChange('bio', newText);
-    
-    // Restore focus and selection
-    setTimeout(() => {
-        input.focus();
-        input.setSelectionRange(start + prefix.length, end + prefix.length);
-    }, 0);
-  };
-
-  const handleLinkClick = () => {
-    if (bioInputRef.current) {
-        // Save selection range before focus is lost to the input
-        selectionRef.current = {
-            start: bioInputRef.current.selectionStart,
-            end: bioInputRef.current.selectionEnd
-        };
-        setShowLinkInput(true);
-        setLinkUrl(''); 
-    }
-  };
-
-  const confirmLink = () => {
-      if (!bioInputRef.current || !selectionRef.current) return;
-      
-      const { start, end } = selectionRef.current;
-      const text = profile.bio;
-      const selectedText = text.substring(start, end);
-      
-      let finalUrl = linkUrl.trim();
-      if (finalUrl && !finalUrl.match(/^https?:\/\//)) {
-          finalUrl = 'https://' + finalUrl;
-      }
-      
-      if (finalUrl) {
-          const insertText = `[${selectedText || 'Link'}](${finalUrl})`;
-          const newText = text.substring(0, start) + insertText + text.substring(end);
-          
-          handleChange('bio', newText);
-          
-          setTimeout(() => {
-              bioInputRef.current?.focus();
-              const newCursorPos = start + insertText.length;
-              bioInputRef.current?.setSelectionRange(newCursorPos, newCursorPos);
-          }, 0);
-      }
-      
-      setShowLinkInput(false);
-      setLinkUrl('');
-  };
-
-  // Connection Handlers
-  const handleAddConnection = () => {
-    if (!newConnLabel || !newConnUrl) return;
-    const newConnection: Connection = {
-        id: Date.now().toString() + Math.random().toString(36).substr(2, 5),
-        label: newConnLabel,
-        url: newConnUrl
-    };
-    handleChange('connections', [...profile.connections, newConnection]);
-    setNewConnLabel('');
-    setNewConnUrl('');
-  };
-
-  const handleRemoveConnection = (id: string) => {
-    handleChange('connections', profile.connections.filter(c => c.id !== id));
-  };
-
-  // Badge Handlers
-  const handleAddBadge = () => {
-    if (!newBadgeLabel) return;
-    const newBadge: Badge = {
-        id: Date.now().toString() + Math.random().toString(36).substr(2, 5),
-        label: newBadgeLabel,
-        color: newBadgeColor,
-        style: newBadgeStyle
-    };
-    handleChange('badges', [...profile.badges, newBadge]);
-    setNewBadgeLabel('');
-  };
-
-  const handleRemoveBadge = (id: string) => {
-    handleChange('badges', profile.badges.filter(b => b.id !== id));
-  };
-
-  // Playlist Handlers
-  const handleAddPlaylist = () => {
-      if (!newPlaylistUrl) return;
-      
-      let playlistId = newPlaylistUrl;
-      const listMatch = newPlaylistUrl.match(/[?&]list=([^#&]+)/);
-      if (listMatch) {
-          playlistId = listMatch[1];
-      }
-
-      const label = newPlaylistLabel || `Playlist ${profile.playlists.length + 1}`;
-
-      const newPlaylist: PlaylistItem = {
-          id: Date.now().toString() + Math.random().toString(36).substr(2, 5),
-          playlistId: playlistId,
-          label: label
+  // --- Image Handlers ---
+  const handleFileUpload = (key: 'avatar' | 'banner', maxW: number) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files?.[0]) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const img = new Image();
+      img.onload = () => {
+        const cvs = document.createElement('canvas');
+        let w = img.width, h = img.height;
+        if (w > maxW || h > maxW) {
+          if (w > h) { h = (h / w) * maxW; w = maxW; }
+          else { w = (w / h) * maxW; h = maxW; }
+        }
+        cvs.width = w; cvs.height = h;
+        cvs.getContext('2d')!.drawImage(img, 0, 0, w, h);
+        update({ [key]: cvs.toDataURL('image/jpeg', 0.85) });
       };
-      
-      handleChange('playlists', [...profile.playlists, newPlaylist]);
-      setNewPlaylistUrl('');
-      setNewPlaylistLabel('');
+      img.src = ev.target!.result as string;
+    };
+    reader.readAsDataURL(e.target.files[0]);
   };
 
-  const handleRemovePlaylist = (id: string) => {
-      handleChange('playlists', profile.playlists.filter(p => p.id !== id));
+  const clearImg = (key: 'avatar' | 'banner') => {
+    update({ [key]: '' });
   };
+
+  // --- Badge Handlers ---
+  const addBadge = () => {
+    update({ badges: [...profile.badges, { label: 'NEW', color: '#5865F2', icon: 'none' }] });
+  };
+  const removeBadge = (idx: number) => {
+    update({ badges: profile.badges.filter((_, i) => i !== idx) });
+  };
+  const updateBadge = (idx: number, key: keyof ProfileBadge, val: string) => {
+    const badges = [...profile.badges];
+    (badges[idx] as any)[key] = val;
+    update({ badges });
+  };
+
+  // --- Tab Handlers ---
+  const addTab = () => {
+    update({ aboutTabs: [...profile.aboutTabs, { title: 'NEW TAB', content: 'Content here...' }] });
+  };
+  const removeTab = (idx: number) => {
+    update({ aboutTabs: profile.aboutTabs.filter((_, i) => i !== idx) });
+  };
+  const updateTab = (idx: number, key: keyof AboutTab, val: string) => {
+    const tabs = [...profile.aboutTabs];
+    tabs[idx] = { ...tabs[idx], [key]: val };
+    update({ aboutTabs: tabs });
+  };
+
+  // --- Button Handlers ---
+  const addButton = (preset?: string) => {
+    const btn = preset && BUTTON_PRESETS[preset]
+      ? { ...BUTTON_PRESETS[preset] }
+      : { label: 'Button', url: 'https://', style: 'secondary' as ButtonStyle, icon: 'link' as IconType };
+    update({ buttons: [...profile.buttons, btn] });
+  };
+  const removeButton = (idx: number) => {
+    update({ buttons: profile.buttons.filter((_, i) => i !== idx) });
+  };
+  const updateButton = (idx: number, key: keyof SocialButton, val: string) => {
+    const buttons = [...profile.buttons];
+    (buttons[idx] as any)[key] = val;
+    update({ buttons });
+  };
+
+  // --- Playlist Handlers ---
+  const addPlaylist = () => {
+    if (!newPlaylistUrl) return;
+    let playlistId = newPlaylistUrl;
+    const match = newPlaylistUrl.match(/[?&]list=([^#&]+)/);
+    if (match) playlistId = match[1];
+    const label = newPlaylistLabel || `Playlist ${profile.playlists.length + 1}`;
+    update({
+      playlists: [...profile.playlists, {
+        id: Date.now().toString(),
+        playlistId,
+        label,
+      }],
+    });
+    setNewPlaylistUrl('');
+    setNewPlaylistLabel('');
+  };
+  const removePlaylist = (id: string) => {
+    update({ playlists: profile.playlists.filter(p => p.id !== id) });
+  };
+
+  const inputCls = "w-full bg-black border border-gray-700 text-white p-2 rounded text-xs outline-none focus:border-[#00f3ff] transition-colors";
+  const sectionCls = "p-3 bg-[#1e1f22] border border-gray-800 rounded";
 
   return (
-    <div className="w-full md:w-1/3 p-6 flex flex-col gap-6 overflow-y-auto h-full scrollbar-thin scrollbar-thumb-gray-700 bg-discord-bgSecondary">
-      <h2 className="text-xl font-bold text-white mb-2">Profile Editor</h2>
-      
-      {/* Identity */}
+    <div className="fixed top-0 right-0 w-[360px] h-full bg-black/95 backdrop-blur-md border-l border-gray-800 p-5 overflow-y-auto z-[150] shadow-[-20px_0_50px_rgba(0,0,0,0.8)] font-sans text-[13px] custom-scroll pb-10">
+      <h2 className="text-[#00f3ff] font-bold font-mono text-lg mb-4 flex items-center gap-2 border-b border-gray-800 pb-2">
+        &gt; PROFILE_BUILDER
+      </h2>
+
       <div className="space-y-4">
-        <div className="flex justify-between items-center">
-             <h3 className="text-gray-400 text-xs font-bold uppercase">User Identity</h3>
-             <div className="flex bg-gray-900 rounded p-1 border border-gray-700">
-                 <button 
-                    onClick={() => handleChange('identityFormat', 'legacy')}
-                    className={`text-[10px] px-2 py-1 rounded transition-colors ${profile.identityFormat === 'legacy' ? 'bg-gray-600 text-white font-bold' : 'text-gray-400 hover:text-gray-200'}`}
-                 >
-                    Legacy (#0000)
-                 </button>
-                 <button 
-                    onClick={() => handleChange('identityFormat', 'modern')}
-                    className={`text-[10px] px-2 py-1 rounded transition-colors ${profile.identityFormat === 'modern' ? 'bg-indigo-600 text-white font-bold' : 'text-gray-400 hover:text-gray-200'}`}
-                 >
-                    Modern (@user)
-                 </button>
-             </div>
-        </div>
+        {/* ===== IDENTITY VISUALS ===== */}
+        <div className={sectionCls}>
+          <h3 className="text-xs font-bold text-white mb-2 pb-1 border-b border-gray-700">IDENTITY VISUALS</h3>
 
-        {profile.identityFormat === 'modern' ? (
-             <div className="space-y-3">
-                 <div>
-                    <label htmlFor="displayName" className="text-xs text-gray-500 block mb-1">Display Name</label>
-                    <input
-                        id="displayName"
-                        type="text"
-                        value={profile.displayName}
-                        onChange={(e) => handleChange('displayName', e.target.value)}
-                        placeholder="Display Name"
-                        className="w-full bg-gray-900 text-white p-2 rounded border border-gray-700 focus:border-blue-500 focus:outline-none"
-                    />
-                 </div>
-                 <div>
-                    <label htmlFor="username" className="text-xs text-gray-500 block mb-1">Username (Unique ID)</label>
-                    <div className="flex items-center bg-gray-900 rounded border border-gray-700 px-2 text-gray-400">
-                        @
-                        <input
-                            id="username"
-                            type="text"
-                            value={profile.username}
-                            onChange={(e) => handleChange('username', e.target.value)}
-                            placeholder="username"
-                            aria-label="Username"
-                            className="w-full bg-transparent text-white p-2 focus:outline-none"
-                        />
-                    </div>
-                 </div>
-                 <div>
-                    <label htmlFor="pronouns" className="text-xs text-gray-500 block mb-1">Pronouns</label>
-                    <input
-                        id="pronouns"
-                        type="text"
-                        value={profile.pronouns || ''}
-                        onChange={(e) => handleChange('pronouns', e.target.value)}
-                        placeholder="he/him, they/them..."
-                        className="w-full bg-gray-900 text-white p-2 rounded border border-gray-700 focus:border-blue-500 focus:outline-none"
-                    />
-                 </div>
-             </div>
-        ) : (
-             <div className="flex gap-2">
-                <div className="flex-1">
-                    <label htmlFor="username-legacy" className="text-xs text-gray-500 block mb-1">Username</label>
-                    <input
-                      id="username-legacy"
-                      type="text"
-                      value={profile.username}
-                      onChange={(e) => handleChange('username', e.target.value)}
-                      placeholder="Username"
-                      className="w-full bg-gray-900 text-white p-2 rounded border border-gray-700 focus:border-blue-500 focus:outline-none"
-                    />
-                </div>
-                 <div className="w-24">
-                    <label htmlFor="discriminator" className="text-xs text-gray-500 block mb-1">Tag</label>
-                    <div className="flex items-center bg-gray-900 rounded border border-gray-700 px-2 text-gray-400">
-                        #
-                        <input
-                          id="discriminator"
-                          type="text"
-                          value={profile.discriminator}
-                          onChange={(e) => handleChange('discriminator', e.target.value)}
-                          placeholder="0000"
-                          maxLength={4}
-                          aria-label="Discord Tag"
-                          className="w-full bg-transparent text-white p-2 focus:outline-none"
-                        />
-                     </div>
-                 </div>
-            </div>
-        )}
-        
-        {/* Birthday */}
-        <div className="flex gap-2 items-end">
-             <div className="flex-1">
-                <label htmlFor="birthday" className="text-xs text-gray-500 block mb-1">Birthday</label>
-                <input
-                    id="birthday"
-                    type="date"
-                    value={profile.birthday || ''}
-                    onChange={(e) => handleChange('birthday', e.target.value)}
-                    className="w-full bg-gray-900 text-white p-2 rounded border border-gray-700 focus:border-blue-500 focus:outline-none text-sm appearance-none"
-                />
-             </div>
-             <div className="flex items-center h-10 gap-2">
-                 <input 
-                    type="checkbox" 
-                    id="showBirthday"
-                    checked={profile.showBirthday}
-                    onChange={(e) => handleChange('showBirthday', e.target.checked)}
-                    className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-gray-700 bg-gray-900"
-                 />
-                 <label htmlFor="showBirthday" className="text-xs text-gray-400 cursor-pointer select-none">Show</label>
-             </div>
-        </div>
-
-        <div>
-           <label htmlFor="status" className="text-xs text-gray-500 block mb-1">Status</label>
-           <select
-             id="status"
-             value={profile.status}
-             onChange={(e) => handleChange('status', e.target.value as StatusType)}
-             className="w-full bg-gray-900 text-white p-2 rounded border border-gray-700 focus:border-blue-500 focus:outline-none text-sm"
-           >
-             <option value="online">Online</option>
-             <option value="idle">Idle</option>
-             <option value="dnd">Do Not Disturb</option>
-             <option value="offline">Invisible</option>
-           </select>
-        </div>
-        
-        {/* Bio Editor */}
-        <div>
-           <div className="flex justify-between items-center mb-1">
-               <label htmlFor="bio" className="text-xs text-gray-500">About Me (Markdown Supported)</label>
-           </div>
-           <div className="bg-gray-900 rounded border border-gray-700 overflow-hidden focus-within:border-blue-500 transition-colors">
-               <div className="flex gap-1 p-1 bg-gray-800 border-b border-gray-700 overflow-x-auto min-h-[36px] items-center">
-                   {showLinkInput ? (
-                       <div className="flex flex-1 items-center gap-2 animate-in fade-in zoom-in duration-200">
-                           <input
-                               type="text"
-                               value={linkUrl}
-                               onChange={(e) => setLinkUrl(e.target.value)}
-                               placeholder="https://example.com"
-                               aria-label="Link URL"
-                               className="flex-1 bg-gray-900 text-white text-xs px-2 py-1 rounded border border-gray-600 focus:border-blue-500 outline-none"
-                               autoFocus
-                               onKeyDown={(e) => {
-                                   if (e.key === 'Enter') confirmLink();
-                                   if (e.key === 'Escape') setShowLinkInput(false);
-                               }}
-                           />
-                           <button onClick={confirmLink} className="text-xs bg-green-600 text-white px-2 py-1 rounded hover:bg-green-500 font-medium">Add</button>
-                           <button onClick={() => setShowLinkInput(false)} className="text-xs bg-gray-600 text-white px-2 py-1 rounded hover:bg-gray-500 font-medium">Cancel</button>
-                       </div>
-                   ) : (
-                       <>
-                           <button onClick={() => insertFormatting('**', '**')} className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-700 rounded transition-colors" title="Bold" aria-label="Bold"><Bold size={14}/></button>
-                           <button onClick={() => insertFormatting('*', '*')} className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-700 rounded transition-colors" title="Italic" aria-label="Italic"><Italic size={14}/></button>
-                           <button onClick={() => insertFormatting('__', '__')} className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-700 rounded transition-colors" title="Underline" aria-label="Underline"><Underline size={14}/></button>
-                           <button onClick={() => insertFormatting('~~', '~~')} className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-700 rounded transition-colors" title="Strikethrough" aria-label="Strikethrough"><Strikethrough size={14}/></button>
-                           <div className="w-[1px] bg-gray-700 mx-1 h-4"></div>
-                           <button onClick={() => insertFormatting('`', '`')} className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-700 rounded transition-colors" title="Code" aria-label="Code Block"><Code size={14}/></button>
-                           <button onClick={() => insertFormatting('> ', '')} className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-700 rounded transition-colors" title="Quote" aria-label="Quote"><Quote size={14}/></button>
-                           <button onClick={() => insertFormatting('||', '||')} className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-700 rounded transition-colors" title="Spoiler" aria-label="Spoiler"><EyeOff size={14}/></button>
-                           <button onClick={handleLinkClick} className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-700 rounded transition-colors" title="Link" aria-label="Add Link"><LinkIcon size={14}/></button>
-                       </>
-                   )}
-               </div>
-               <textarea
-                    id="bio"
-                    ref={bioInputRef}
-                    value={profile.bio}
-                    onChange={(e) => handleChange('bio', e.target.value)}
-                    placeholder="Write something about yourself..."
-                    rows={6}
-                    className="w-full bg-gray-900 text-white p-2 focus:outline-none resize-y text-sm font-mono"
-               />
-           </div>
-        </div>
-      </div>
-
-      {/* Badges */}
-      <div className="space-y-4">
-        <h3 className="text-gray-400 text-xs font-bold uppercase">Badges</h3>
-        <div className="flex flex-wrap gap-2">
-            {profile.badges.map(badge => (
-                <div key={badge.id} 
-                    className="flex items-center gap-1 bg-gray-900 px-2 py-1 rounded border"
-                    style={{ borderColor: badge.style === 'outline' ? badge.color : 'rgba(255,255,255,0.1)' }}
-                >
-                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: badge.color }}></div>
-                    <span className="text-xs text-white font-bold">{badge.label}</span>
-                    <button onClick={() => handleRemoveBadge(badge.id)} className="text-gray-500 hover:text-red-400 ml-1" aria-label="Remove badge">
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                    </button>
-                </div>
-            ))}
-        </div>
-        
-        <div className="flex flex-col gap-2 bg-gray-800 p-3 rounded border border-gray-700">
+          {/* Avatar */}
+          <label className="block text-[10px] text-[#00f3ff] mb-1 font-mono flex justify-between items-center">
+            Avatar Image
+            <span
+              className="cursor-pointer text-[9px] text-red-400 font-bold bg-red-950/50 px-1.5 py-0.5 rounded border border-red-500/50 hover:bg-red-500 hover:text-white transition-colors"
+              onClick={() => clearImg('avatar')}
+            >CLEAR</span>
+          </label>
+          <div className="bg-black border border-gray-700 rounded p-2 mb-3">
             <input
-                type="text"
-                value={newBadgeLabel}
-                onChange={(e) => setNewBadgeLabel(e.target.value)}
-                placeholder="Badge Label (e.g. VIP)"
-                aria-label="Badge Label"
-                className="w-full bg-gray-900 text-white p-2 rounded border border-gray-600 focus:border-blue-500 focus:outline-none text-sm"
+              type="text"
+              placeholder="Paste Image URL..."
+              value={profile.avatar && !profile.avatar.startsWith('data:') ? profile.avatar : ''}
+              onChange={e => update({ avatar: e.target.value.trim() })}
+              className="w-full bg-gray-900 border border-gray-700 text-white p-1.5 rounded text-[10px] outline-none focus:border-[#00f3ff] mb-2"
             />
-            <div className="flex gap-2">
-                <div className="flex items-center gap-2 bg-gray-900 px-2 rounded border border-gray-600">
-                    <Palette size={14} className="text-gray-400" />
-                    <input
-                        type="color"
-                        value={newBadgeColor}
-                        onChange={(e) => setNewBadgeColor(e.target.value)}
-                        className="h-6 w-8 cursor-pointer bg-transparent border-none p-0"
-                        title="Badge Color"
-                        aria-label="Badge Color"
-                    />
-                </div>
-                <select
-                    value={newBadgeStyle}
-                    onChange={(e) => setNewBadgeStyle(e.target.value as BadgeStyle)}
-                    aria-label="Badge Style"
-                    className="flex-1 bg-gray-900 text-white text-xs px-2 rounded border border-gray-600 focus:outline-none"
-                >
-                    <option value="solid">Solid</option>
-                    <option value="outline">Outline</option>
-                    <option value="soft">Soft</option>
+            <div className="flex items-center gap-2 mb-2">
+              <div className="h-px bg-gray-800 flex-1" /><span className="text-[9px] text-gray-500 font-bold">OR UPLOAD</span><div className="h-px bg-gray-800 flex-1" />
+            </div>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleFileUpload('avatar', 400)}
+              className="w-full text-[10px] text-gray-400 file:bg-gray-800 file:text-white file:border-0 file:rounded file:px-2 file:py-1 cursor-pointer"
+            />
+          </div>
+
+          {/* Banner */}
+          <label className="block text-[10px] text-[#b5bac1] mb-1 font-mono flex justify-between items-center">
+            Banner Image
+            <span
+              className="cursor-pointer text-[9px] text-red-400 font-bold bg-red-950/50 px-1.5 py-0.5 rounded border border-red-500/50 hover:bg-red-500 hover:text-white transition-colors"
+              onClick={() => clearImg('banner')}
+            >CLEAR</span>
+          </label>
+          <div className="bg-black border border-gray-700 rounded p-2 mb-2">
+            <input
+              type="text"
+              placeholder="Paste Image URL..."
+              value={profile.banner && !profile.banner.startsWith('data:') ? profile.banner : ''}
+              onChange={e => update({ banner: e.target.value.trim() })}
+              className="w-full bg-gray-900 border border-gray-700 text-white p-1.5 rounded text-[10px] outline-none focus:border-[#00f3ff] mb-2"
+            />
+            <div className="flex items-center gap-2 mb-2">
+              <div className="h-px bg-gray-800 flex-1" /><span className="text-[9px] text-gray-500 font-bold">OR UPLOAD</span><div className="h-px bg-gray-800 flex-1" />
+            </div>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleFileUpload('banner', 800)}
+              className="w-full text-[10px] text-gray-400 file:bg-gray-800 file:text-white file:border-0 file:rounded file:px-2 file:py-1 cursor-pointer"
+            />
+          </div>
+
+          <label className="block text-[10px] text-[#b5bac1] mb-1 mt-2">Banner Fallback Color</label>
+          <input
+            type="color"
+            value={profile.bannerColor || '#00f3ff'}
+            onChange={e => update({ bannerColor: e.target.value })}
+            className="w-full h-8 cursor-pointer rounded bg-transparent border-0 p-0"
+          />
+        </div>
+
+        {/* ===== TEXTS & STATUS ===== */}
+        <div className={`${sectionCls} space-y-2.5`}>
+          <h3 className="text-xs font-bold text-white mb-1 pb-1 border-b border-gray-700">TEXTS & STATUS</h3>
+          <div>
+            <label className="block text-[10px] text-[#b5bac1] mb-1">Display Name</label>
+            <input type="text" value={profile.displayName} onChange={e => update({ displayName: e.target.value })} className={inputCls} />
+          </div>
+          <div className="flex gap-2">
+            <div className="flex-1">
+              <label className="block text-[10px] text-[#b5bac1] mb-1">Username</label>
+              <input type="text" value={profile.username} onChange={e => update({ username: e.target.value })} className={inputCls} />
+            </div>
+            <div className="w-20">
+              <label className="block text-[10px] text-[#b5bac1] mb-1">Pronouns</label>
+              <input type="text" value={profile.pronouns} onChange={e => update({ pronouns: e.target.value })} className={inputCls} />
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <div className="w-12">
+              <label className="block text-[10px] text-[#b5bac1] mb-1">Emoji</label>
+              <input type="text" value={profile.statusEmoji} onChange={e => update({ statusEmoji: e.target.value })} className={`${inputCls} text-center`} />
+            </div>
+            <div className="flex-1">
+              <label className="block text-[10px] text-[#b5bac1] mb-1">Custom Status</label>
+              <input type="text" value={profile.statusText} onChange={e => update({ statusText: e.target.value })} className={inputCls} />
+            </div>
+          </div>
+          <div>
+            <label className="block text-[10px] text-[#b5bac1] mb-1">Roles (Comma Separated)</label>
+            <input
+              type="text"
+              value={profile.roles.join(', ')}
+              onChange={e => update({ roles: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
+              className={inputCls}
+            />
+          </div>
+        </div>
+
+        {/* ===== BADGES ===== */}
+        <div className={sectionCls}>
+          <h3 className="text-xs font-bold text-white uppercase mb-2 flex justify-between items-center border-b border-gray-700 pb-1">
+            Name Badges
+            <button type="button" onClick={addBadge} className="text-[10px] bg-gray-800 hover:bg-gray-700 text-[#00f3ff] px-2 py-0.5 rounded font-bold transition-colors">+ Add</button>
+          </h3>
+          <div className="space-y-1.5 mt-2 max-h-32 overflow-y-auto custom-scroll pr-1">
+            {profile.badges.map((b, idx) => (
+              <div key={idx} className="flex gap-1.5 p-2 bg-black border border-gray-700 rounded relative items-center">
+                <button type="button" onClick={() => removeBadge(idx)} className="bg-red-500/20 text-red-500 hover:bg-red-500 hover:text-white px-1.5 py-0.5 rounded text-[10px] font-bold transition-colors">X</button>
+                <input type="text" value={b.label} onChange={e => updateBadge(idx, 'label', e.target.value)} placeholder="Label" className="w-1/3 bg-gray-900 text-white border border-gray-700 text-[11px] outline-none focus:border-[#00f3ff] px-1.5 py-1 rounded" />
+                <input type="color" value={b.color} onChange={e => updateBadge(idx, 'color', e.target.value)} className="w-6 h-6 p-0 border-0 bg-transparent cursor-pointer rounded shrink-0" />
+                <select value={b.icon} onChange={e => updateBadge(idx, 'icon', e.target.value)} className="flex-1 bg-gray-800 border border-gray-700 text-white p-1 rounded text-[10px] outline-none focus:border-[#00f3ff] cursor-pointer">
+                  {BADGE_ICON_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
                 </select>
-                <button
-                    onClick={handleAddBadge}
-                    className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 rounded text-xs font-bold uppercase tracking-wider"
-                    style={{ backgroundColor: profile.theme.button }}
-                >
-                    Add
-                </button>
-            </div>
-        </div>
-      </div>
-
-      {/* Visuals */}
-      <div className="space-y-4">
-        <h3 className="text-gray-400 text-xs font-bold uppercase">Images</h3>
-        <div>
-            <label htmlFor="avatarUrl" className="text-xs text-gray-500 block mb-1">Avatar URL</label>
-            <input
-            id="avatarUrl"
-            type="text"
-            value={profile.avatarUrl}
-            onChange={(e) => handleChange('avatarUrl', e.target.value)}
-            className="w-full bg-gray-900 text-white p-2 rounded border border-gray-700 focus:border-blue-500 focus:outline-none text-sm"
-            />
-        </div>
-        <div>
-            <label htmlFor="bannerUrl" className="text-xs text-gray-500 block mb-1">Banner URL</label>
-            <input
-            id="bannerUrl"
-            type="text"
-            value={profile.bannerUrl}
-            onChange={(e) => handleChange('bannerUrl', e.target.value)}
-            className="w-full bg-gray-900 text-white p-2 rounded border border-gray-700 focus:border-blue-500 focus:outline-none text-sm"
-            />
-        </div>
-      </div>
-
-      {/* Theme Settings */}
-      <div className="space-y-4">
-        <h3 className="text-gray-400 text-xs font-bold uppercase">Theme & Colors</h3>
-        
-        <div className="grid grid-cols-2 gap-4">
-             <div>
-                <label htmlFor="primaryColor" className="text-xs text-gray-500 block mb-1">Primary Color</label>
-                <div className="flex items-center gap-2 bg-gray-900 p-1 rounded border border-gray-700">
-                    <input
-                        id="primaryColor"
-                        type="color"
-                        value={profile.theme.primary}
-                        onChange={(e) => handleThemeChange('primary', e.target.value)}
-                        aria-label="Primary Color"
-                        className="h-6 w-8 cursor-pointer bg-transparent border-none p-0"
-                    />
-                    <span className="text-xs text-gray-300 font-mono">{profile.theme.primary}</span>
-                </div>
-             </div>
-
-             <div>
-                <label htmlFor="buttonColor" className="text-xs text-gray-500 block mb-1">Button Color</label>
-                <div className="flex items-center gap-2 bg-gray-900 p-1 rounded border border-gray-700">
-                    <input
-                        id="buttonColor"
-                        type="color"
-                        value={profile.theme.button}
-                        onChange={(e) => handleThemeChange('button', e.target.value)}
-                        aria-label="Button Color"
-                        className="h-6 w-8 cursor-pointer bg-transparent border-none p-0"
-                    />
-                     <span className="text-xs text-gray-300 font-mono">{profile.theme.button}</span>
-                </div>
-             </div>
-        </div>
-
-        <div>
-            <label htmlFor="background" className="text-xs text-gray-500 block mb-1">Card Background</label>
-            <div className="flex items-center gap-2 bg-gray-900 p-1 rounded border border-gray-700">
-                <input
-                    id="background"
-                    type="color"
-                    value={profile.theme.background}
-                    onChange={(e) => handleThemeChange('background', e.target.value)}
-                    aria-label="Card Background Color"
-                    className="h-6 w-8 cursor-pointer bg-transparent border-none p-0"
-                />
-                 <span className="text-xs text-gray-300 font-mono">{profile.theme.background}</span>
-            </div>
-        </div>
-
-        <div className="flex items-center justify-between">
-            <label className="text-sm text-gray-300">Enable Gradient Theme</label>
-            <input 
-                type="checkbox" 
-                checked={profile.theme.mode === 'gradient'}
-                onChange={(e) => handleThemeChange('mode', e.target.checked ? 'gradient' : 'simple')}
-                className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-gray-300"
-            />
-        </div>
-
-        {profile.theme.mode === 'gradient' && (
-             <div>
-                <label htmlFor="secondaryColor" className="text-xs text-gray-500 block mb-1">Secondary Color (Gradient End)</label>
-                <div className="flex items-center gap-2 bg-gray-900 p-1 rounded border border-gray-700">
-                    <input
-                        id="secondaryColor"
-                        type="color"
-                        value={profile.theme.secondary}
-                        onChange={(e) => handleThemeChange('secondary', e.target.value)}
-                        aria-label="Secondary Color"
-                        className="h-6 w-8 cursor-pointer bg-transparent border-none p-0"
-                    />
-                     <span className="text-xs text-gray-300 font-mono">{profile.theme.secondary}</span>
-                </div>
-             </div>
-        )}
-      </div>
-
-      {/* Connections */}
-      <div className="space-y-4">
-        <h3 className="text-gray-400 text-xs font-bold uppercase">Connections</h3>
-        
-        <div className="space-y-2">
-            {profile.connections.map(conn => (
-                <div key={conn.id} className="flex items-center justify-between bg-gray-900 p-2 rounded border border-gray-700">
-                    <div className="flex items-center gap-2 overflow-hidden">
-                        <img 
-                            src={`https://www.google.com/s2/favicons?sz=32&domain=${conn.url}`} 
-                            alt="" 
-                            className="w-4 h-4"
-                        />
-                        <span className="text-sm text-gray-300 truncate">{conn.label}</span>
-                    </div>
-                    <button
-                        onClick={() => handleRemoveConnection(conn.id)}
-                        className="text-red-400 hover:text-red-300 p-1"
-                        aria-label="Remove connection"
-                    >
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                    </button>
-                </div>
+              </div>
             ))}
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-2 bg-gray-800 p-3 rounded">
-             <input
-                type="text"
-                value={newConnLabel}
-                onChange={(e) => setNewConnLabel(e.target.value)}
-                placeholder="Label (e.g. GitHub)"
-                aria-label="Connection Label"
-                className="w-full bg-gray-900 text-white p-2 rounded border border-gray-600 focus:border-blue-500 focus:outline-none text-sm"
-            />
-            <input
-                type="text"
-                value={newConnUrl}
-                onChange={(e) => setNewConnUrl(e.target.value)}
-                placeholder="URL (https://...)"
-                aria-label="Connection URL"
-                className="w-full bg-gray-900 text-white p-2 rounded border border-gray-600 focus:border-blue-500 focus:outline-none text-sm"
-            />
-            <button
-                onClick={handleAddConnection}
-                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-1.5 rounded text-sm font-medium transition-colors"
-                style={{ backgroundColor: profile.theme.button }}
-            >
-                Add Connection
-            </button>
+        {/* ===== ABOUT ME TABS ===== */}
+        <div className={sectionCls}>
+          <h3 className="text-xs font-bold text-white uppercase mb-2 flex justify-between items-center border-b border-gray-700 pb-1">
+            About Me (Tabs)
+            <button type="button" onClick={addTab} className="text-[10px] bg-gray-800 hover:bg-gray-700 text-[#00f3ff] px-2 py-0.5 rounded font-bold transition-colors">+ Add Tab</button>
+          </h3>
+          <div className="space-y-2 mt-2 max-h-52 overflow-y-auto custom-scroll pr-1">
+            {profile.aboutTabs.map((t, idx) => (
+              <div key={idx} className="flex flex-col gap-1.5 p-2 bg-black border border-gray-700 rounded relative">
+                <button type="button" onClick={() => removeTab(idx)} className="absolute top-1 right-1 bg-red-500/20 text-red-500 hover:bg-red-500 hover:text-white px-1.5 rounded text-[10px] font-bold transition-colors z-10">X</button>
+                <input type="text" value={t.title} onChange={e => updateTab(idx, 'title', e.target.value)} placeholder="Tab Title" className="w-[85%] bg-transparent text-white border-b border-gray-700 text-xs outline-none focus:border-[#00f3ff] pb-1 font-bold" />
+                <textarea rows={3} maxLength={400} placeholder="Markdown (max 400 chars)" value={t.content} onChange={e => updateTab(idx, 'content', e.target.value)} className="w-full bg-gray-900 border border-gray-700 text-gray-300 p-1.5 rounded text-[11px] outline-none focus:border-[#00f3ff] mt-1 custom-scroll" />
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
 
-      {/* Media */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-            <h3 className="text-gray-400 text-xs font-bold uppercase">Music Playlists</h3>
-            <div className="flex items-center gap-2">
-                 <label className="text-xs text-gray-400">Enable</label>
-                 <input 
-                    type="checkbox"
-                    checked={profile.musicEnabled}
-                    onChange={(e) => handleChange('musicEnabled', e.target.checked)}
-                    className="w-4 h-4"
-                 />
-            </div>
-        </div>
-        
-        {profile.musicEnabled && (
-            <div className="space-y-3">
-                <div className="space-y-2">
-                    {profile.playlists.map((playlist, idx) => (
-                         <div key={playlist.id} className="flex items-center justify-between bg-gray-900 p-2 rounded border border-gray-700">
-                            <div className="flex flex-col overflow-hidden">
-                                <span className="text-sm text-gray-200 truncate font-medium">{playlist.label}</span>
-                                <span className="text-[10px] text-gray-500 truncate">{playlist.playlistId}</span>
-                            </div>
-                            <button
-                                onClick={() => handleRemovePlaylist(playlist.id)}
-                                className="text-red-400 hover:text-red-300 p-1"
-                                aria-label="Remove playlist"
-                            >
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                            </button>
-                        </div>
-                    ))}
+        {/* ===== SOCIAL BUTTONS ===== */}
+        <div className={sectionCls}>
+          <h3 className="text-xs font-bold text-white uppercase mb-2 flex justify-between items-center border-b border-gray-700 pb-1">
+            SOCIAL / ACTION BUTTONS
+            <button type="button" onClick={() => addButton()} className="text-[10px] bg-gray-800 hover:bg-gray-700 text-[#00f3ff] px-2 py-0.5 rounded font-bold transition-colors">+ Add Btn</button>
+          </h3>
+          {/* Presets */}
+          <div className="flex gap-1 mb-2 overflow-x-auto custom-scroll pb-1 text-[10px] whitespace-nowrap text-gray-300">
+            <span className="mr-1 mt-0.5 font-bold text-gray-500">Presets:</span>
+            {Object.keys(BUTTON_PRESETS).map(key => (
+              <button key={key} type="button" onClick={() => addButton(key)} className="bg-gray-800 hover:bg-gray-600 px-1.5 py-0.5 rounded capitalize">{key}</button>
+            ))}
+          </div>
+          <div className="space-y-1.5 mt-2 max-h-40 overflow-y-auto custom-scroll pr-1">
+            {profile.buttons.map((b, idx) => (
+              <div key={idx} className="flex flex-col gap-1.5 p-2 bg-black border border-gray-700 rounded relative">
+                <button type="button" onClick={() => removeButton(idx)} className="absolute top-1 right-1 bg-red-500/20 text-red-500 hover:bg-red-500 hover:text-white px-1.5 rounded text-[10px] font-bold transition-colors z-10">X</button>
+                <div className="flex items-center gap-2 pr-6">
+                  <select value={b.icon} onChange={e => updateButton(idx, 'icon', e.target.value)} className="w-20 bg-gray-800 border border-gray-700 text-white p-1 rounded text-[10px] outline-none focus:border-[#00f3ff] cursor-pointer">
+                    {ICON_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                  </select>
+                  <input type="text" value={b.label} onChange={e => updateButton(idx, 'label', e.target.value)} placeholder="Btn Label" className="flex-1 bg-transparent text-white border-b border-gray-700 text-xs outline-none focus:border-[#00f3ff] pb-1" />
                 </div>
-
-                <div className="grid grid-cols-1 gap-2 bg-gray-800 p-3 rounded">
-                    <input
-                        type="text"
-                        value={newPlaylistLabel}
-                        onChange={(e) => setNewPlaylistLabel(e.target.value)}
-                        placeholder="Playlist Name (Optional)"
-                        aria-label="Playlist Name"
-                        className="w-full bg-gray-900 text-white p-2 rounded border border-gray-600 focus:border-blue-500 focus:outline-none text-sm"
-                    />
-                    <input
-                        type="text"
-                        value={newPlaylistUrl}
-                        onChange={(e) => setNewPlaylistUrl(e.target.value)}
-                        className="w-full bg-gray-900 text-white p-2 rounded border border-gray-600 focus:border-blue-500 focus:outline-none text-sm"
-                        placeholder="Paste Playlist URL or ID"
-                        aria-label="Playlist URL or ID"
-                    />
-                    <button
-                        onClick={handleAddPlaylist}
-                        className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-1.5 rounded text-sm font-medium transition-colors"
-                        style={{ backgroundColor: profile.theme.button }}
-                    >
-                        Add Playlist
-                    </button>
+                <div className="flex gap-2 items-center mt-1">
+                  <input type="text" value={b.url} onChange={e => updateButton(idx, 'url', e.target.value)} placeholder="URL (Link)" className="flex-1 bg-gray-900 border border-gray-700 text-white p-1.5 rounded text-[11px] outline-none focus:border-[#00f3ff]" />
+                  <select value={b.style} onChange={e => updateButton(idx, 'style', e.target.value)} className="w-[70px] bg-gray-800 border border-gray-700 text-white p-1.5 rounded text-[10px] outline-none focus:border-[#00f3ff] cursor-pointer">
+                    <option value="primary">Blue</option>
+                    <option value="secondary">Gray</option>
+                    <option value="success">Green</option>
+                    <option value="danger">Red</option>
+                  </select>
                 </div>
-            </div>
-        )}
-      </div>
+              </div>
+            ))}
+          </div>
+        </div>
 
-      <div className="mt-auto pt-6 flex gap-3">
-        <button
+        {/* ===== YOUTUBE PLAYLISTS ===== */}
+        <div className={sectionCls}>
+          <h3 className="text-xs font-bold text-white uppercase mb-2 flex justify-between items-center border-b border-gray-700 pb-1">
+            YouTube Playlists
+            <label className="flex items-center gap-1 text-[10px] text-gray-400">
+              Enable
+              <input
+                type="checkbox"
+                checked={profile.musicEnabled}
+                onChange={e => update({ musicEnabled: e.target.checked })}
+                className="w-3 h-3"
+              />
+            </label>
+          </h3>
+          {profile.musicEnabled && (
+            <div className="space-y-2">
+              {profile.playlists.map(pl => (
+                <div key={pl.id} className="flex items-center justify-between bg-black p-2 rounded border border-gray-700">
+                  <div className="flex flex-col overflow-hidden">
+                    <span className="text-[11px] text-gray-200 truncate font-medium">{pl.label}</span>
+                    <span className="text-[9px] text-gray-500 truncate">{pl.playlistId}</span>
+                  </div>
+                  <button type="button" onClick={() => removePlaylist(pl.id)} className="text-red-400 hover:text-red-300 p-1 text-[10px] font-bold">X</button>
+                </div>
+              ))}
+              <div className="bg-black border border-gray-700 rounded p-2 space-y-1.5">
+                <input type="text" value={newPlaylistLabel} onChange={e => setNewPlaylistLabel(e.target.value)} placeholder="Playlist Name (Optional)" className="w-full bg-gray-900 border border-gray-700 text-white p-1.5 rounded text-[10px] outline-none focus:border-[#00f3ff]" />
+                <input type="text" value={newPlaylistUrl} onChange={e => setNewPlaylistUrl(e.target.value)} placeholder="Paste Playlist URL or ID" className="w-full bg-gray-900 border border-gray-700 text-white p-1.5 rounded text-[10px] outline-none focus:border-[#00f3ff]" />
+                <button type="button" onClick={addPlaylist} className="w-full bg-[#00f3ff]/10 hover:bg-[#00f3ff] hover:text-black text-[#00f3ff] border border-[#00f3ff] py-1.5 rounded text-[10px] font-bold transition-all">Add Playlist</button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* ===== EXPORT ===== */}
+        <div className="pt-2 pb-8">
+          <button
+            type="button"
             onClick={onDownload}
-            className="flex-1 hover:brightness-110 text-white font-bold py-3 px-2 rounded transition-all flex items-center justify-center gap-2 shadow-lg text-sm bg-discord-green"
-        >
-            <Download size={18} />
-            Download HTML
-        </button>
-        <button
-            onClick={handleCopyClick}
-            className="flex-1 hover:brightness-110 text-white font-bold py-3 px-2 rounded transition-all flex items-center justify-center gap-2 shadow-lg text-sm bg-gray-700 hover:bg-gray-600"
-            style={{ backgroundColor: profile.theme.button }}
-        >
-             {isCopied ? <Check size={18} /> : <Copy size={18} />}
-             {isCopied ? "Copied!" : "Copy Code"}
-        </button>
+            className="w-full bg-[#00f3ff] hover:bg-white text-black font-bold font-mono py-3.5 rounded transition-colors shadow-[0_0_15px_rgba(0,243,255,0.4)] tracking-widest text-xs"
+          >
+            [ EXPORT HTML ]
+          </button>
+          <p className="text-[10px] text-gray-500 mt-2 text-center leading-relaxed">
+            Export produces a standalone HTML file with all<br/>cinematic sequences and profile data embedded.
+          </p>
+        </div>
       </div>
     </div>
   );

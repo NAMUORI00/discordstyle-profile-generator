@@ -1,16 +1,25 @@
-export interface Connection {
-  id: string;
-  label: string;
-  url: string;
-}
+// === Neural Identity Endpoint - Type Definitions ===
 
-export type BadgeStyle = 'solid' | 'outline' | 'soft';
+export type IconType = 'none' | 'bot' | 'check' | 'github' | 'instagram' | 'twitter' | 'naver' | 'discord' | 'youtube' | 'tistory' | 'link';
 
-export interface Badge {
-  id: string;
+export type ButtonStyle = 'primary' | 'secondary' | 'success' | 'danger';
+
+export interface ProfileBadge {
   label: string;
   color: string;
-  style: BadgeStyle;
+  icon: IconType;
+}
+
+export interface AboutTab {
+  title: string;
+  content: string;
+}
+
+export interface SocialButton {
+  label: string;
+  url: string;
+  style: ButtonStyle;
+  icon: IconType;
 }
 
 export interface PlaylistItem {
@@ -26,37 +35,20 @@ export interface TrackInfo {
   author: string;
 }
 
-export type StatusType = 'online' | 'idle' | 'dnd' | 'offline';
-export type IdentityFormat = 'legacy' | 'modern';
-
-export interface ThemeConfig {
-  primary: string;
-  secondary: string;
-  background: string;
-  button: string;
-  mode: 'simple' | 'gradient';
-}
-
 export interface UserProfile {
-  username: string; // Used as Name in Legacy, Handle in Modern
-  discriminator: string; // Only for Legacy
-  displayName: string; // Only for Modern
-  pronouns?: string; // Only for Modern
-  identityFormat: IdentityFormat;
-  bio: string;
-  birthday?: string; // YYYY-MM-DD
-  showBirthday: boolean;
-  status: StatusType;
-  avatarUrl: string;
-  bannerUrl: string;
+  avatar: string;
+  banner: string;
+  bannerColor: string;
+  displayName: string;
+  username: string;
+  pronouns: string;
+  statusEmoji: string;
+  statusText: string;
+  badges: ProfileBadge[];
+  aboutTabs: AboutTab[];
+  roles: string[];
+  buttons: SocialButton[];
+  // YouTube Music
   musicEnabled: boolean;
-  playlists: PlaylistItem[]; 
-  badges: Badge[];
-  connections: Connection[];
-  theme: ThemeConfig;
-}
-
-export interface VisualizerProps {
-  isPlaying: boolean;
-  primaryColor: string;
+  playlists: PlaylistItem[];
 }

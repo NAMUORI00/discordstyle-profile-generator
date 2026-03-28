@@ -1,50 +1,43 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#36393f" />
-    <title>Discord Style Profile Generator</title>
-    <!-- Tailwind CSS -->
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neural Identity Endpoint</title>
+    
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Inter:wght@400;500;600;700;800&family=Press+Start+2P&display=swap" rel="stylesheet">
+    
     <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              discord: {
-                bg: '#36393f',
-                bgSecondary: '#2f3136',
-                bgTertiary: '#202225',
-                green: '#3ba55c',
-              }
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        cyan: '#00f3ff',
+                        hacker: '#00ff00',
+                        hackerRed: '#ff003c',
+                        dcCard: '#111214',
+                        dcInner: '#1e1f22',
+                        dcText: '#f2f3f5',
+                        dcSub: '#b5bac1',
+                        dcDiv: '#3f4147',
+                        dcRole: '#292b2f',
+                        dcGreen: '#23a559'
+                    },
+                    fontFamily: { 
+                        mono: ['"Fira Code"', 'monospace'], 
+                        sans: ['"Inter"', 'sans-serif'],
+                        pixel: ['"Press Start 2P"', 'cursive']
+                    }
+                }
             }
-          }
         }
-      }
     </script>
-    <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Inter', sans-serif; }
-    </style>
-  <script type="importmap">
-{
-  "imports": {
-    "react": "https://esm.sh/react@19.0.0",
-    "react/": "https://esm.sh/react@19.0.0/",
-    "react-dom": "https://esm.sh/react-dom@19.0.0",
-    "react-dom/": "https://esm.sh/react-dom@19.0.0/",
-    "react-dom/client": "https://esm.sh/react-dom@19.0.0/client",
-    "lucide-react": "https://esm.sh/lucide-react@0.474.0",
-    "react-youtube": "https://esm.sh/react-youtube@10.1.0"
-  }
-}
-</script>
-<link rel="stylesheet" href="/index.css">
+    <link rel="stylesheet" href="/index.css">
 </head>
-  <body>
+<body class="antialiased">
     <div id="root"></div>
-  <script type="module" src="/index.tsx"></script>
+    <script type="module" src="/index.tsx"></script>
 </body>
 </html>
